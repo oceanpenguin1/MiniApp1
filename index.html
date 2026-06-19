@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My LINE Mini App</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+      body { font-family: sans-serif; text-align: center; padding: 20px; }
+      #profileImage { width: 100px; border-radius: 50%; display: none; margin: 0 auto; }
+      button { padding: 10px 20px; background-color: #00B900; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px;}
+      #errorLog { color: red; font-size: 14px; margin-top: 15px; word-break: break-all; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <h2>ยินดีต้อนรับสู่แอปของฉัน!</h2>
+    <img id="profileImage" src="" alt="Profile Image">
+    <p id="displayName">กำลังโหลดข้อมูล...</p>
+    
+    <p id="errorLog"></p> 
+    
+    <button onclick="closeApp()">ปิดแอป</button>
+
+    <script>
+      // LIFF ID ของคุณ
+      const LIFF_ID = "2010438529-ItUi41wM"; 
+
+      async function main() {
+        try {
+          // เริ่มต้นการทำงานของ LIFF
+          await liff.init({ liffId: LIFF_ID });
+          
+          if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
+          }
+
+          // ดึงข้อมูลโปรไฟล์
+          const profile = await liff.getProfile();
+          document.getElementById("displayName").innerText = "สวัสดีคุณ " + profile.displayName;
+          document.getElementById("profileImage").src = profile.pictureUrl;
+          document.getElementById("profileImage").style.display = "block";
+          
+        } catch (err) {
+          // ถ้ามี Error จะมาเข้าตรงนี้และโชว์บนหน้าจอ
+          document.getElementById("displayName").innerText = "เกิดข้อผิดพลาดในการโหลดข้อมูล";
+          document.getElementById("errorLog").innerText = "รายละเอียด Error: " + err.message;
+        }
+      }
+
+      function closeApp() {
+        if (liff.isInClient()) {
+          liff.closeWindow();
+        } else {
+          alert("ไม่สามารถปิดแอปได้เนื่องจากไม่ได้เปิดในแอป LINE");
+        }
+      }
+
+      // เรียกใช้งานตอนเปิดหน้าเว็บ
+      window.onload = function() {
+        main();
+      };
+    </script>
+  </body>
+</html>
