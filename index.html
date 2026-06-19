@@ -1,34 +1,67 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <base target="_top">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My LINE Mini App</title>
+    <title>My LINE App</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-      body { font-family: sans-serif; text-align: center; padding: 20px; }
-      #profileImage { width: 100px; border-radius: 50%; display: none; margin: 0 auto; }
-      button { padding: 10px 20px; background-color: #00B900; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px;}
+      body { 
+        font-family: sans-serif; 
+        text-align: center; 
+        padding: 20px; 
+        background-color: #f4f4f4; 
+      }
+      .container { 
+        background-color: white; 
+        padding: 30px 20px; 
+        border-radius: 10px; 
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+        max-width: 400px; 
+        margin: 0 auto; 
+      }
+      #profileImage { 
+        width: 120px; 
+        border-radius: 50%; 
+        display: none; 
+        margin: 0 auto 15px auto; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      }
+      .btn { 
+        padding: 12px 20px; 
+        color: white; 
+        border: none; 
+        border-radius: 5px; 
+        font-size: 16px; 
+        cursor: pointer; 
+        width: 100%; 
+        margin-top: 15px; 
+        font-weight: bold;
+      }
+      .btn-share { background-color: #0056b3; } /* สีน้ำเงินสำหรับปุ่มแชร์ */
+      .btn-close { background-color: #00B900; } /* สีเขียวสำหรับปุ่มปิด */
       #errorLog { color: red; font-size: 14px; margin-top: 15px; word-break: break-all; font-weight: bold; }
     </style>
   </head>
   <body>
-    <h2>ยินดีต้อนรับสู่แอปของฉัน!</h2>
-    <img id="profileImage" src="" alt="Profile Image">
-    <p id="displayName">กำลังโหลดข้อมูล...</p>
-    
-    <p id="errorLog"></p> 
-    
-    <button onclick="closeApp()">ปิดแอป</button>
+    <div class="container">
+      <h2>ยินดีต้อนรับ!</h2>
+      <img id="profileImage" src="" alt="Profile Image">
+      <p id="displayName">กำลังโหลดข้อมูล...</p>
+      
+      <button class="btn btn-share" onclick="shareMessage()">ส่งต่อให้เพื่อน</button>
+      
+      <button class="btn btn-close" onclick="closeApp()">ปิดแอป</button>
+      
+      <p id="errorLog"></p>
+    </div>
 
     <script>
-      // LIFF ID ของคุณ
+      // ⚠️ นำ LIFF ID ของคุณมาใส่ตรงนี้
       const LIFF_ID = "2010438529-ItUi41wM"; 
 
       async function main() {
         try {
-          // เริ่มต้นการทำงานของ LIFF
           await liff.init({ liffId: LIFF_ID });
           
           if (!liff.isLoggedIn()) {
@@ -36,16 +69,38 @@
             return;
           }
 
-          // ดึงข้อมูลโปรไฟล์
           const profile = await liff.getProfile();
           document.getElementById("displayName").innerText = "สวัสดีคุณ " + profile.displayName;
           document.getElementById("profileImage").src = profile.pictureUrl;
           document.getElementById("profileImage").style.display = "block";
           
         } catch (err) {
-          // ถ้ามี Error จะมาเข้าตรงนี้และโชว์บนหน้าจอ
           document.getElementById("displayName").innerText = "เกิดข้อผิดพลาดในการโหลดข้อมูล";
           document.getElementById("errorLog").innerText = "รายละเอียด Error: " + err.message;
+        }
+      }
+
+      // ฟังก์ชันสำหรับแชร์ข้อความ (shareTargetPicker)
+      async function shareMessage() {
+        if (liff.isApiAvailable('shareTargetPicker')) {
+          try {
+            const res = await liff.shareTargetPicker([
+              {
+                type: "text",
+                text: "สวัสดี! ลองเข้ามาดูแอปของฉันสิ เจ๋งมากๆ เลย"
+              }
+            ]);
+            
+            if (res) {
+              alert("แชร์ข้อความสำเร็จแล้ว!");
+            } else {
+              console.log("ผู้ใช้ยกเลิกการแชร์ หรือปิดหน้าต่างไปก่อน");
+            }
+          } catch (err) {
+            document.getElementById("errorLog").innerText = "แชร์ไม่สำเร็จ (อย่าลืมเปิดสิทธิ์ chat_message.write): " + err.message;
+          }
+        } else {
+          alert("อุปกรณ์นี้ไม่รองรับการแชร์ หรือเปิดในเบราว์เซอร์ที่ไม่รองรับครับ");
         }
       }
 
@@ -53,11 +108,10 @@
         if (liff.isInClient()) {
           liff.closeWindow();
         } else {
-          alert("ไม่สามารถปิดแอปได้เนื่องจากไม่ได้เปิดในแอป LINE");
+          alert("ไม่สามารถปิดแอปได้เนื่องจากไม่ได้เปิดผ่านแอป LINE บนมือถือ");
         }
       }
 
-      // เรียกใช้งานตอนเปิดหน้าเว็บ
       window.onload = function() {
         main();
       };
